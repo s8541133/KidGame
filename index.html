@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>英文字母大小寫學習遊戲</title>
+  <style>
+    :root {
+      --bg1: #fff8dc;
+      --bg2: #e8f7ff;
+      --card: #ffffff;
+      --text: #3d4a5a;
+      --accent: #ff8a5b;
+      --accent2: #6fc5ff;
+      --success: #38c172;
+      --danger: #ff7b7b;
+      --shadow: 0 10px 24px rgba(61, 74, 90, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Arial Rounded MT Bold", "Noto Sans TC", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 12%, rgba(255,255,255,.95) 0 55px, transparent 56px),
+        radial-gradient(circle at 88% 18%, rgba(255,255,255,.9) 0 42px, transparent 43px),
+        linear-gradient(180deg, var(--bg2) 0%, var(--bg1) 100%);
+      overflow-x: hidden;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .scene {
+      min-height: 100vh;
+      padding: 24px 16px 36px;
+      position: relative;
+    }
+
+    .decor {
+      position: fixed;
+      pointer-events: none;
+      user-select: none;
+      opacity: .9;
+      z-index: 0;
+    }
+
+    .star1 { top: 18px; left: 4%; font-size: 34px; }
+    .star2 { top: 88px; right: 6%; font-size: 28px; }
+    .cloud1 { bottom: 34px; left: 2%; font-size: 52px; }
+    .rainbow { bottom: 18px; right: 3%; font-size: 50px; }
+
+    .app {
+      width: min(1050px, 100%);
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: clamp(34px, 6vw, 56px);
+      line-height: 1.1;
+      color: var(--accent);
+      text-shadow: 0 3px 0 #fff;
+    }
+
+    .subtitle {
+      margin: 10px 0 0;
+      font-size: clamp(17px, 2.7vw, 22px);
+      font-weight: 800;
+      color: #5a6d7e;
+    }
+
+    .mode-selector {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .mode-btn {
+      border: 3px solid rgba(255,255,255,.8);
+      background: rgba(255,255,255,.88);
+      border-radius: 22px;
+      padding: 14px 10px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      font-size: clamp(16px, 2.2vw, 20px);
+      font-weight: 900;
+      color: #51677b;
+      transition: .18s ease;
+    }
+
+    .mode-btn span {
+      display: block;
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+
+    .mode-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .mode-btn.active {
+      border-color: #ffd166;
+      background: #fff6cc;
+      transform: scale(1.02);
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .pill {
+      background: rgba(255,255,255,.92);
+      box-shadow: var(--shadow);
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .action-btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 18px;
+      cursor: pointer;
+      background: white;
+      color: #5a6d7e;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+      transition: transform .15s ease;
+    }
+
+    .action-btn:hover {
+      transform: scale(1.04);
+    }
+
+    .panel {
+      background: rgba(255,255,255,.52);
+      border: 3px solid rgba(255,255,255,.75);
+      border-radius: 30px;
+      box-shadow: 0 12px 34px rgba(61,74,90,.08);
+      padding: 20px;
+      backdrop-filter: blur(3px);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* 認識模式 */
+    .learn-wrap {
+      text-align: center;
+      padding: 22px 10px;
+    }
+
+    .learn-card {
+      width: min(520px, 100%);
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 32px;
+      box-shadow: var(--shadow);
+      padding: 34px 20px;
+    }
+
+    .learn-pair {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+
+    .learn-letter {
+      width: 150px;
+      height: 150px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 28px;
+      font-size: 92px;
+      font-weight: 900;
+      background: #fff4c8;
+      box-shadow: inset 0 0 0 4px #ffd166;
+    }
+
+    .learn-letter.lower {
+      background: #e8f6ff;
+      box-shadow: inset 0 0 0 4px #90d7ff;
+    }
+
+    .learn-message {
+      margin: 22px 0 0;
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .next-letter-btn {
+      margin-top: 22px;
+      border: 0;
+      border-radius: 18px;
+      padding: 13px 22px;
+      font-size: 19px;
+      font-weight: 900;
+      color: white;
+      background: linear-gradient(135deg, #ffb347, #ff7f50);
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(255,127,80,.25);
+    }
+
+    /* 一般配對 */
+    .match-board {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .match-column {
+      background: rgba(255,255,255,.62);
+      border-radius: 24px;
+      padding: 16px;
+    }
+
+    .match-title {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 900;
+      margin: 0 0 12px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .letter-card {
+      min-height: 118px;
+      border: 4px solid transparent;
+      border-radius: 24px;
+      background: white;
+      box-shadow: var(--shadow);
+      font-size: clamp(50px, 7vw, 74px);
+      font-weight: 900;
+      color: #40556b;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: .16s ease;
+      user-select: none;
+    }
+
+    .letter-card:hover {
+      transform: translateY(-3px) scale(1.02);
+    }
+
+    .letter-card.selected {
+      border-color: #ffd166;
+      background: #fff6cf;
+      transform: scale(1.05);
+    }
+
+    .letter-card.matched {
+      opacity: .22;
+      transform: scale(.9);
+      pointer-events: none;
+    }
+
+    .shake {
+      animation: shake .34s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-7px); }
+      50% { transform: translateX(7px); }
+      75% { transform: translateX(-5px); }
+    }
+
+    /* 翻牌模式 */
+    .memory-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .memory-card {
+      perspective: 900px;
+      min-height: 145px;
+      cursor: pointer;
+    }
+
+    .memory-card-inner {
+      width: 100%;
+      height: 100%;
+      min-height: 145px;
+      position: relative;
+      transition: transform .45s ease;
+      transform-style: preserve-3d;
+    }
+
+    .memory-card.flipped .memory-card-inner,
+    .memory-card.matched .memory-card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .memory-card-face {
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      backface-visibility: hidden;
+      box-shadow: var(--shadow);
+      user-select: none;
+    }
+
+    .memory-card-front {
+      background: linear-gradient(135deg, #80d4ff, #b7e8ff);
+      color: white;
+      font-size: 46px;
+      border: 4px solid white;
+    }
+
+    .memory-card-back {
+      background: white;
+      color: #40556b;
+      transform: rotateY(180deg);
+      font-size: clamp(52px, 7vw, 76px);
+      font-weight: 900;
+      border: 4px solid #ffd166;
+    }
+
+    .memory-card.matched .memory-card-back {
+      background: #e5ffe9;
+      border-color: #6edb8f;
+    }
+
+    .feedback {
+      min-height: 54px;
+      text-align: center;
+      margin-top: 18px;
+      font-size: clamp(20px, 3.5vw, 28px);
+      font-weight: 900;
+    }
+
+    .feedback.success {
+      color: var(--success);
+      animation: pop .35s ease;
+    }
+
+    .feedback.error {
+      color: var(--danger);
+    }
+
+    @keyframes pop {
+      0% { transform: scale(.76); opacity: .2; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .complete-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: rgba(255,255,255,.78);
+      backdrop-filter: blur(6px);
+      z-index: 20;
+    }
+
+    .complete-overlay.show {
+      display: flex;
+    }
+
+    .complete-card {
+      width: min(480px, 100%);
+      background: white;
+      border-radius: 32px;
+      padding: 34px 24px;
+      box-shadow: 0 24px 60px rgba(61,74,90,.2);
+      text-align: center;
+      animation: pop .35s ease;
+    }
+
+    .complete-card h2 {
+      margin: 0 0 12px;
+      color: var(--accent);
+      font-size: clamp(30px, 7vw, 46px);
+    }
+
+    .stars {
+      font-size: 36px;
+      letter-spacing: 4px;
+      margin-bottom: 14px;
+    }
+
+    .complete-card p {
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .play-again {
+      margin-top: 8px;
+      border: 0;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #ffb347, #ff7f50);
+      color: white;
+      padding: 14px 26px;
+      font-size: 21px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    @media (max-width: 760px) {
+      .mode-selector {
+        grid-template-columns: 1fr;
+      }
+
+      .match-board {
+        grid-template-columns: 1fr;
+      }
+
+      .cards {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .memory-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .memory-card,
+      .memory-card-inner {
+        min-height: 115px;
+      }
+    }
+
+    @media (max-width: 460px) {
+      .scene {
+        padding: 18px 10px 28px;
+      }
+
+      .panel {
+        padding: 12px;
+      }
+
+      .learn-letter {
+        width: 125px;
+        height: 125px;
+        font-size: 76px;
+      }
+
+      .letter-card {
+        min-height: 82px;
+        border-radius: 18px;
+      }
+
+      .memory-grid {
+        gap: 10px;
+      }
+
+      .memory-card,
+      .memory-card-inner {
+        min-height: 95px;
+      }
+
+      .memory-card-face {
+        border-radius: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="scene">
+    <div class="decor star1">⭐</div>
+    <div class="decor star2">✨</div>
+    <div class="decor cloud1">☁️</div>
+    <div class="decor rainbow">🌈</div>
+
+    <main class="app">
+      <header class="header">
+        <h1 class="title">🌈 英文字母樂園</h1>
+        <p class="subtitle">一起認識英文字母的大小寫朋友！</p>
+      </header>
+
+      <section class="mode-selector">
+        <button class="mode-btn active" data-mode="learn">
+          <span>👀</span>
+          認識字母
+        </button>
+        <button class="mode-btn" data-mode="match">
+          <span>🤝</span>
+          字母找朋友
+        </button>
+        <button class="mode-btn" data-mode="memory">
+          <span>🃏</span>
+          翻牌找朋友
+        </button>
+      </section>
+
+      <div class="toolbar">
+        <div class="pill" id="progressPill">📘 認識字母</div>
+        <button class="action-btn hidden" id="resetBtn">🔄 換一組</button>
+      </div>
+
+      <section class="panel">
+        <!-- 認識模式 -->
+        <div id="learnMode">
+          <div class="learn-wrap">
+            <div class="learn-card">
+              <div class="learn-pair">
+                <div class="learn-letter" id="learnUpper">A</div>
+                <div class="learn-letter lower" id="learnLower">a</div>
+              </div>
+              <div class="learn-message" id="learnMessage">A 和 a 是一對大小寫朋友！</div>
+              <button class="next-letter-btn" id="nextLetterBtn">下一個字母 ➜</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 一般配對 -->
+        <div id="matchMode" class="hidden">
+          <div class="match-board">
+            <div class="match-column">
+              <h2 class="match-title">🔵 大寫字母</h2>
+              <div class="cards" id="uppercaseCards"></div>
+            </div>
+            <div class="match-column">
+              <h2 class="match-title">🟣 小寫字母</h2>
+              <div class="cards" id="lowercaseCards"></div>
+            </div>
+          </div>
+          <div class="feedback" id="matchFeedback">選一個大寫字母，再找它的小寫朋友 😊</div>
+        </div>
+
+        <!-- 翻牌模式 -->
+        <div id="memoryMode" class="hidden">
+          <div class="memory-grid" id="memoryGrid"></div>
+          <div class="feedback" id="memoryFeedback">翻開兩張牌，找出大小寫朋友吧！ 🃏</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="complete-overlay" id="completeOverlay">
+    <div class="complete-card">
+      <h2>🎉 全部找到啦！</h2>
+      <div class="stars">⭐⭐⭐⭐⭐⭐</div>
+      <p id="completeMessage">你找到 6 對字母朋友！</p>
+      <button class="play-again" id="playAgainBtn">再玩一次 🚀</button>
+    </div>
+  </div>
+
+  <script>
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+    let currentMode = "learn";
+    let learnIndex = 0;
+    let learnOrder = shuffle(letters);
+
+    let selectedUpper = null;
+    let selectedLower = null;
+    let matchCount = 0;
+    let matchLocked = false;
+
+    let memoryFirst = null;
+    let memorySecond = null;
+    let memoryCount = 0;
+    let memoryLocked = false;
+
+    const modeButtons = document.querySelectorAll(".mode-btn");
+    const learnMode = document.getElementById("learnMode");
+    const matchMode = document.getElementById("matchMode");
+    const memoryMode = document.getElementById("memoryMode");
+    const progressPill = document.getElementById("progressPill");
+    const resetBtn = document.getElementById("resetBtn");
+    const completeOverlay = document.getElementById("completeOverlay");
+    const playAgainBtn = document.getElementById("playAgainBtn");
+    const completeMessage = document.getElementById("completeMessage");
+
+    function shuffle(array) {
+      const result = [...array];
+      for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+      return result;
+    }
+
+    function pickSixLetters() {
+      return shuffle(letters).slice(0, 6);
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+
+      modeButtons.forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.mode === mode);
+      });
+
+      learnMode.classList.toggle("hidden", mode !== "learn");
+      matchMode.classList.toggle("hidden", mode !== "match");
+      memoryMode.classList.toggle("hidden", mode !== "memory");
+
+      resetBtn.classList.toggle("hidden", mode === "learn");
+      completeOverlay.classList.remove("show");
+
+      if (mode === "learn") {
+        progressPill.textContent = "📘 認識字母";
+        showLearnLetter();
+      } else if (mode === "match") {
+        startMatchGame();
+      } else {
+        startMemoryGame();
+      }
+    }
+
+    modeButtons.forEach(btn => {
+      btn.addEventListener("click", () => setMode(btn.dataset.mode));
+    });
+
+    /* 認識模式 */
+    const learnUpper = document.getElementById("learnUpper");
+    const learnLower = document.getElementById("learnLower");
+    const learnMessage = document.getElementById("learnMessage");
+    const nextLetterBtn = document.getElementById("nextLetterBtn");
+
+    function showLearnLetter() {
+      const letter = learnOrder[learnIndex];
+      learnUpper.textContent = letter;
+      learnLower.textContent = letter.toLowerCase();
+      learnMessage.textContent = `${letter} 和 ${letter.toLowerCase()} 是一對大小寫朋友！`;
+    }
+
+    nextLetterBtn.addEventListener("click", () => {
+      learnIndex++;
+
+      if (learnIndex >= learnOrder.length) {
+        learnIndex = 0;
+        learnOrder = shuffle(letters);
+      }
+
+      showLearnLetter();
+    });
+
+    /* 一般配對 */
+    const uppercaseCards = document.getElementById("uppercaseCards");
+    const lowercaseCards = document.getElementById("lowercaseCards");
+    const matchFeedback = document.getElementById("matchFeedback");
+
+    function createMatchCard(letter, type) {
+      const button = document.createElement("button");
+      button.className = "letter-card";
+      button.textContent = type === "upper" ? letter : letter.toLowerCase();
+      button.dataset.letter = letter;
+      button.dataset.type = type;
+      button.addEventListener("click", () => handleMatchClick(button));
+      return button;
+    }
+
+    function startMatchGame() {
+      selectedUpper = null;
+      selectedLower = null;
+      matchCount = 0;
+      matchLocked = false;
+
+      uppercaseCards.innerHTML = "";
+      lowercaseCards.innerHTML = "";
+      matchFeedback.textContent = "選一個大寫字母，再找它的小寫朋友 😊";
+      matchFeedback.className = "feedback";
+
+      const picked = pickSixLetters();
+
+      shuffle(picked).forEach(letter => {
+        uppercaseCards.appendChild(createMatchCard(letter, "upper"));
+      });
+
+      shuffle(picked).forEach(letter => {
+        lowercaseCards.appendChild(createMatchCard(letter, "lower"));
+      });
+
+      progressPill.textContent = "⭐ 0 / 6";
+    }
+
+    function handleMatchClick(card) {
+      if (matchLocked || card.classList.contains("matched")) return;
+
+      if (card.dataset.type === "upper") {
+        if (selectedUpper) selectedUpper.classList.remove("selected");
+        selectedUpper = card;
+        selectedUpper.classList.add("selected");
+      } else {
+        if (selectedLower) selectedLower.classList.remove("selected");
+        selectedLower = card;
+        selectedLower.classList.add("selected");
+      }
+
+      if (selectedUpper && selectedLower) {
+        checkMatchPair();
+      }
+    }
+
+    function checkMatchPair() {
+      matchLocked = true;
+
+      if (selectedUpper.dataset.letter === selectedLower.dataset.letter) {
+        const letter = selectedUpper.dataset.letter;
+
+        selectedUpper.classList.remove("selected");
+        selectedLower.classList.remove("selected");
+        selectedUpper.classList.add("matched");
+        selectedLower.classList.add("matched");
+
+        matchCount++;
+        progressPill.textContent = `⭐ ${matchCount} / 6`;
+        matchFeedback.textContent = `⭐ 太棒了！ ${letter} 和 ${letter.toLowerCase()} 是好朋友！`;
+        matchFeedback.className = "feedback success";
+
+        selectedUpper = null;
+        selectedLower = null;
+        matchLocked = false;
+
+        if (matchCount === 6) {
+          showComplete("你找到 6 對大小寫字母朋友！");
+        }
+      } else {
+        matchFeedback.textContent = "再找找看 😊";
+        matchFeedback.className = "feedback error";
+        selectedUpper.classList.add("shake");
+        selectedLower.classList.add("shake");
+
+        setTimeout(() => {
+          selectedUpper?.classList.remove("selected", "shake");
+          selectedLower?.classList.remove("selected", "shake");
+          selectedUpper = null;
+          selectedLower = null;
+          matchLocked = false;
+        }, 500);
+      }
+    }
+
+    /* 翻牌模式 */
+    const memoryGrid = document.getElementById("memoryGrid");
+    const memoryFeedback = document.getElementById("memoryFeedback");
+
+    function startMemoryGame() {
+      memoryFirst = null;
+      memorySecond = null;
+      memoryCount = 0;
+      memoryLocked = false;
+
+      memoryGrid.innerHTML = "";
+      memoryFeedback.textContent = "翻開兩張牌，找出大小寫朋友吧！ 🃏";
+      memoryFeedback.className = "feedback";
+      progressPill.textContent = "⭐ 0 / 6";
+
+      const picked = pickSixLetters();
+      const deck = [];
+
+      picked.forEach(letter => {
+        deck.push({ letter, display: letter, pairKey: letter });
+        deck.push({ letter, display: letter.toLowerCase(), pairKey: letter });
+      });
+
+      shuffle(deck).forEach((item, index) => {
+        memoryGrid.appendChild(createMemoryCard(item, index));
+      });
+    }
+
+    function createMemoryCard(item, index) {
+      const card = document.createElement("div");
+      card.className = "memory-card";
+      card.dataset.letter = item.pairKey;
+      card.dataset.index = index;
+
+      card.innerHTML = `
+        <div class="memory-card-inner">
+          <div class="memory-card-face memory-card-front">?</div>
+          <div class="memory-card-face memory-card-back">${item.display}</div>
+        </div>
+      `;
+
+      card.addEventListener("click", () => handleMemoryClick(card));
+      return card;
+    }
+
+    function handleMemoryClick(card) {
+      if (
+        memoryLocked ||
+        card.classList.contains("matched") ||
+        card === memoryFirst
+      ) return;
+
+      card.classList.add("flipped");
+
+      if (!memoryFirst) {
+        memoryFirst = card;
+        return;
+      }
+
+      memorySecond = card;
+      memoryLocked = true;
+
+      if (memoryFirst.dataset.letter === memorySecond.dataset.letter) {
+        const letter = memoryFirst.dataset.letter;
+
+        setTimeout(() => {
+          memoryFirst.classList.add("matched");
+          memorySecond.classList.add("matched");
+          memoryFirst.classList.remove("flipped");
+          memorySecond.classList.remove("flipped");
+
+          memoryCount++;
+          progressPill.textContent = `⭐ ${memoryCount} / 6`;
+          memoryFeedback.textContent = `⭐ 找到了！ ${letter} 和 ${letter.toLowerCase()} 是一對！`;
+          memoryFeedback.className = "feedback success";
+
+          memoryFirst = null;
+          memorySecond = null;
+          memoryLocked = false;
+
+          if (memoryCount === 6) {
+            showComplete("你完成了 6 對翻牌配對！");
+          }
+        }, 350);
+      } else {
+        memoryFeedback.textContent = "不是這一對，再記住它們的位置 😊";
+        memoryFeedback.className = "feedback error";
+
+        setTimeout(() => {
+          memoryFirst.classList.remove("flipped");
+          memorySecond.classList.remove("flipped");
+          memoryFirst = null;
+          memorySecond = null;
+          memoryLocked = false;
+        }, 900);
+      }
+    }
+
+    function showComplete(message) {
+      completeMessage.textContent = message;
+      setTimeout(() => {
+        completeOverlay.classList.add("show");
+      }, 500);
+    }
+
+    resetBtn.addEventListener("click", () => {
+      if (currentMode === "match") {
+        startMatchGame();
+      } else if (currentMode === "memory") {
+        startMemoryGame();
+      }
+    });
+
+    playAgainBtn.addEventListener("click", () => {
+      completeOverlay.classList.remove("show");
+
+      if (currentMode === "match") {
+        startMatchGame();
+      } else if (currentMode === "memory") {
+        startMemoryGame();
+      }
+    });
+
+    showLearnLetter();
+  </script>
+</body>
+</html>
